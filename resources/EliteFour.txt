@@ -1,0 +1,5 @@
+Lorelei, None, None, Dewgong, 52, Cloyster, 51, Slowbro, 52, Jynx, 54, Lapras, 54
+Bruno, None, None, Onix, 51, Hitmonchan, 53, Hitmonlee, 53, Onix, 54, Machamp, 56
+Agatha, None, None, Gengar, 54, Golbat, 54, Haunter, 53, Arbok, 56, Gengar, 58
+Lance, None, None, Gyarados, 56, Dragonair, 54, Dragonair, 54, Aerodactyl, 58, Dragonite, 60
+Blue_Champion, None, None, Pidgeot, 59, Alakazam, 57, Rhydon, 59, Exeggutor, 59, Arcanine, 61, Blastoise, 63
