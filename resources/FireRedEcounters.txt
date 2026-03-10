@@ -1,0 +1,35 @@
+Route_1, Pidgey, 50%, Rattata, 50%
+Route_2, Pidgey, 45%, Rattata, 45%, Caterpie, 5%, Weedle, 5%
+Route_3, Spearow, 45%, Pidgey, 30%, Nidoran-F, 15%, Nidoran-M, 10%
+Route_4, Rattata, 40%, Spearow, 35%, Ekans, 25%
+Route_5, Pidgey, 40%, Meowth, 35%, Oddish, 25%
+Route_6, Pidgey, 40%, Meowth, 35%, Oddish, 25%
+Route_7, Pidgey, 40%, Meowth, 35%, Oddish, 25%
+Route_8, Pidgey, 30%, Meowth, 25%, Ekans, 20%, Sandshrew, 10%, Growlithe, 10%, Vulpix, 5%
+Route_9, Rattata, 40%, Spearow, 35%, Ekans, 25%
+Route_10, Spearow, 40%, Voltorb, 35%, Ekans, 25%
+Route_11, Spearow, 40%, Sandshrew, 25%, Drowzee, 25%, Ekans, 10%
+Route_12, Oddish, 40%, Pidgey, 30%, Venonat, 20%, Gloom, 10%
+Route_13, Oddish, 40%, Pidgey, 30%, Venonat, 20%, Gloom, 10%
+Route_14, Oddish, 40%, Pidgey, 30%, Venonat, 20%, Gloom, 10%
+Route_15, Oddish, 40%, Pidgey, 30%, Venonat, 20%, Gloom, 10%
+Route_16, Rattata, 40%, Doduo, 35%, Spearow, 25%
+Route_17, Doduo, 40%, Spearow, 25%, Raticate, 20%, Fearow, 15%
+Route_18, Doduo, 40%, Spearow, 25%, Raticate, 20%, Fearow, 15%
+Route_21, Pidgey, 60%, Rattata, 30%, Pidgeotto, 10%
+Route_22, Rattata, 45%, Spearow, 45%, Nidoran-M, 5%, Nidoran-F, 5%
+Route_23, Spearow, 40%, Ekans, 25%, Arbok, 20%, Fearow, 15%
+Route_24, Pidgey, 40%, Caterpie, 20%, Weedle, 20%, Oddish, 15%, Kakuna, 5%
+Route_25, Pidgey, 40%, Caterpie, 20%, Weedle, 20%, Oddish, 15%, Metapod, 5%
+Viridian_Forest, Caterpie, 40%, Weedle, 40%, Metapod, 10%, Kakuna, 5%, Pikachu, 5%
+Mt_Moon_1F, Zubat, 75%, Geodude, 20%, Paras, 5%
+Mt_Moon_B1F, Zubat, 75%, Geodude, 20%, Paras, 5%
+Mt_Moon_B2F, Zubat, 45%, Geodude, 25%, Paras, 15%, Clefairy, 10%, Onix, 5%
+Rock_Tunnel_1F, Zubat, 50%, Geodude, 30%, Machop, 15%, Onix, 5%
+Rock_Tunnel_B1F, Zubat, 50%, Geodude, 30%, Machop, 15%, Onix, 5%
+Seafoam_Islands_1F, Seel, 40%, Zubat, 30%, Krabby, 20%, Slowpoke, 10%
+Seafoam_Islands_B4F, Seel, 30%, Horsea, 20%, Zubat, 20%, Dewgong, 15%, Psyduck, 10%, Golduck, 5%
+Victory_Road_1F, Machoke, 30%, Geodude, 20%, Zubat, 20%, Onix, 15%, Arbok, 10%, Marowak, 5%
+Cerulean_Cave_1F, Magneton, 25%, Kadabra, 20%, Primeape, 15%, Parasect, 15%, Ditto, 10%, Wobbuffet, 10%, Arbok, 5%
+Digletts_Cave, Diglett, 95%, Dugtrio, 5%
+Pokemon_Mansion_1F, Koffing, 40%, Rattata, 30%, Growlithe, 20%, Grimer, 10%
