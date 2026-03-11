@@ -10,7 +10,7 @@ import java.util.Random;
 public class GameLauncher extends JFrame
 {
     // --- GLOBAL STATE ---
-    public static String playerName = "Red"; 
+    public static String playerName = "Red";
     public static List<Pokemon> party = new ArrayList<>();
     public static List<String> bag = new ArrayList<>();
     public static List<String> tms = new ArrayList<>(); // NEW: Added TM pocket for the inventory!
