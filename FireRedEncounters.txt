@@ -1,0 +1,35 @@
+1, Pidgey, 50%, Rattata, 50%
+3, Pidgey, 45%, Rattata, 45%, Caterpie, 5%, Weedle, 5%
+6, Spearow, 45%, Pidgey, 30%, Nidoran-F, 15%, Nidoran-M, 10%
+8, Rattata, 40%, Spearow, 35%, Ekans, 25%
+10, Pidgey, 40%, Meowth, 35%, Oddish, 25%
+15, Pidgey, 40%, Meowth, 35%, Oddish, 25%
+19, Pidgey, 40%, Meowth, 35%, Oddish, 25%
+21, Pidgey, 30%, Meowth, 25%, Ekans, 20%, Sandshrew, 10%, Growlithe, 10%, Vulpix, 5%
+9, Rattata, 40%, Spearow, 35%, Ekans, 25%
+10, Spearow, 40%, Voltorb, 35%, Ekans, 25%
+11, Spearow, 40%, Sandshrew, 25%, Drowzee, 25%, Ekans, 10%
+12, Oddish, 40%, Pidgey, 30%, Venonat, 20%, Gloom, 10%
+13, Oddish, 40%, Pidgey, 30%, Venonat, 20%, Gloom, 10%
+14, Oddish, 40%, Pidgey, 30%, Venonat, 20%, Gloom, 10%
+15, Oddish, 40%, Pidgey, 30%, Venonat, 20%, Gloom, 10%
+16, Rattata, 40%, Doduo, 35%, Spearow, 25%
+17, Doduo, 40%, Spearow, 25%, Raticate, 20%, Fearow, 15%
+18, Doduo, 40%, Spearow, 25%, Raticate, 20%, Fearow, 15%
+21, Pidgey, 60%, Rattata, 30%, Pidgeotto, 10%
+22, Rattata, 45%, Spearow, 45%, Nidoran-M, 5%, Nidoran-F, 5%
+23, Spearow, 40%, Ekans, 25%, Arbok, 20%, Fearow, 15%
+24, Pidgey, 40%, Caterpie, 20%, Weedle, 20%, Oddish, 15%, Kakuna, 5%
+25, Pidgey, 40%, Caterpie, 20%, Weedle, 20%, Oddish, 15%, Metapod, 5%
+4, Caterpie, 40%, Weedle, 40%, Metapod, 10%, Kakuna, 5%, Pikachu, 5%
+7, Zubat, 75%, Geodude, 20%, Paras, 5%
+7, Zubat, 75%, Geodude, 20%, Paras, 5%
+7, Zubat, 45%, Geodude, 25%, Paras, 15%, Clefairy, 10%, Onix, 5%
+22, Zubat, 50%, Geodude, 30%, Machop, 15%, Onix, 5%
+22, Zubat, 50%, Geodude, 30%, Machop, 15%, Onix, 5%
+29, Seel, 40%, Zubat, 30%, Krabby, 20%, Slowpoke, 10%
+29, Seel, 30%, Horsea, 20%, Zubat, 20%, Dewgong, 15%, Psyduck, 10%, Golduck, 5%
+31, Machoke, 30%, Geodude, 20%, Zubat, 20%, Onix, 15%, Arbok, 10%, Marowak, 5%
+9, Magneton, 25%, Kadabra, 20%, Primeape, 15%, Parasect, 15%, Ditto, 10%, Wobbuffet, 10%, Arbok, 5%
+10, Diglett, 95%, Dugtrio, 5%
+30, Koffing, 40%, Rattata, 30%, Growlithe, 20%, Grimer, 10%

@@ -2,8 +2,17 @@ package PART2;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Scanner;
+import javax.swing.JOptionPane;
 
 
 
@@ -540,6 +549,51 @@ public class WorldPanel extends JPanel
         currentMap[9][39]=5; currentMap[10][39]=5; // South to Cinnabar
         labels.add(new MapLabel("ROUTE 21 (SEA)", 2, 5));
     }
+
+private static Map<Integer, Map<String, Integer>> encounters = new HashMap<>();
+
+    // This block runs the SECOND the game starts
+    static {
+        loadEncounters();
+    }
+
+    public static void loadEncounters() {
+        try {
+            File f = new File("FireRedEncounters.txt");
+            if (!f.exists()) {
+                // If this doesn't show up, the code isn't running at all
+                JOptionPane.showMessageDialog(null, "Searching at: " + f.getAbsolutePath());
+                return;
+            }
+
+            Scanner s = new Scanner(f);
+            while (s.hasNextLine()) {
+                String line = s.nextLine().trim();
+                if (line.isEmpty() || !Character.isDigit(line.charAt(0))) continue;
+                String[] p = line.split("\\s*,\\s*");
+                int id = Integer.parseInt(p[0]);
+                Map<String, Integer> pokes = new LinkedHashMap<>();
+                for (int i = 1; i < p.length; i += 2) {
+                    pokes.put(p[i].trim(), Integer.parseInt(p[i+1].replace("%", "").trim()));
+                }
+                encounters.put(id, pokes);
+            }
+            s.close();
+            JOptionPane.showMessageDialog(null, "Successfully loaded " + encounters.size() + " maps!");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Error: " + e.getMessage());
+        }
+    }
+
+    public String spawn(int id) {
+        if (!encounters.containsKey(id)) return "None";
+        int roll = new Random().nextInt(100) + 1, sum = 0;
+        for (var e : encounters.get(id).entrySet()) {
+            if (roll <= (sum += e.getValue())) return e.getKey();
+        }
+        return "None";
+    }
+
 
 
 
