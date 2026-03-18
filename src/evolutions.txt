@@ -1,4 +1,4 @@
-ulbasaur, Ivysaur, Level, 16
+Bulbasaur, Ivysaur, Level, 16
 Ivysaur, Venusaur, Level, 32
 Charmander, Charmeleon, Level, 16
 Charmeleon, Charizard, Level, 36
