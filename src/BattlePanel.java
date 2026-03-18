@@ -7,7 +7,9 @@ import java.nio.file.Paths;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.List;
+import java.util.Map;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 
 public class BattlePanel extends JPanel
@@ -600,53 +602,68 @@ private void loadMovesetsFromFile(Pokemon p) {
 
 
 private void checkEvolution() {
-        Pokemon p = getActivePokemon();
-        if (p == null) return;
+    Pokemon p = getActivePokemon();
+    if (p == null) return;
 
-
-        String oldName = p.name;
-        boolean evolved = false;
-
-
-        // --- Evolution Logic (Hard-coded since it's not in your text file) ---
-        if (p.level >= 30) {
-            if (p.name.equals("Charmeleon")) { p.name = "Charizard"; evolved = true; }
-            else if (p.name.equals("Wartortle")) { p.name = "Blastoise"; evolved = true; }
-            else if (p.name.equals("Ivysaur")) { p.name = "Venusaur"; evolved = true; }
-        }
-        else if (p.level >= 15) {
-            if (p.name.equals("Charmander")) { p.name = "Charmeleon"; evolved = true; }
-            else if (p.name.equals("Squirtle")) { p.name = "Wartortle"; evolved = true; }
-            else if (p.name.equals("Bulbasaur")) { p.name = "Ivysaur"; evolved = true; }
-        }
-
-
-        if (evolved) {
-            logArea.append("\nWhat? " + oldName + " is evolving!\n");
-           
-            // 1. Boost stats
-            p.maxHp += 20;
-            p.currentHp = p.maxHp;
-
-
-            // 2. Load the NEW moves for the NEW name from your text file
-            loadMovesetsFromFile(p);
-
-
-            // 3. Show the message
-            JOptionPane.showMessageDialog(this,
-                oldName + " has evolved into " + p.name + "!",
-                "Evolution", JOptionPane.INFORMATION_MESSAGE);
-           
-            logArea.append(oldName + " became " + p.name + "!\n");
-            updateStats(); // This refreshes the image to the new form
-        }
+    String userDir = System.getProperty("user.dir");
+    File evoFile = new File(userDir, "evolutions.txt");
+    if (!evoFile.exists()) {
+        evoFile = new File(userDir + File.separator + "src", "evolutions.txt");
     }
 
+    if (!evoFile.exists()) return;
 
-    private Pokemon getActivePokemon()
-    {
-        if (GameLauncher.party.isEmpty()) return null;
-        return GameLauncher.party.get(0);
+    try (Scanner reader = new Scanner(evoFile)) {
+        while (reader.hasNextLine()) {
+            String line = reader.nextLine().trim();
+            if (line.isEmpty()) continue;
+
+            String[] parts = line.split(",");
+            if (parts.length < 4) continue;
+
+            String baseForm = parts[0].trim();
+            String nextForm = parts[1].trim();
+            String method = parts[2].trim(); // "Level", "Thunder Stone", etc.
+            String requirement = parts[3].trim(); // The number "16" or "0"
+
+            // 1. Check if the Name matches
+            if (p.name.equalsIgnoreCase(baseForm)) {
+                
+                // 2. ONLY try to parse the number if the method is "Level"
+                if (method.equalsIgnoreCase("Level")) {
+                    int levelReq = Integer.parseInt(requirement);
+
+                    if (p.level >= levelReq) {
+                        evolvePokemon(p, nextForm);
+                        return; 
+                    }
+                } 
+                // 3. If you want to add Stone evolutions later, you'd add an "else if" here
+            }
+        }
+    } catch (Exception e) {
+        System.out.println("DEBUG: Evolution Error: " + e.getMessage());
     }
 }
+
+// Helper method to keep the code clean
+private void evolvePokemon(Pokemon p, String nextForm) {
+    String oldName = p.name;
+    p.name = nextForm;
+    p.maxHp += 20;
+    p.currentHp = p.maxHp;
+
+    loadMovesetsFromFile(p);
+    updateStats();
+
+    logArea.append("\nWhat? " + oldName + " is evolving!\n");
+    JOptionPane.showMessageDialog(this, oldName + " evolved into " + p.name + "!");
+    
+    checkEvolution(); // Check for stage 3
+}
+
+    private Pokemon getActivePokemon() {
+        if (GameLauncher.party == null || GameLauncher.party.isEmpty()) return null;
+        return GameLauncher.party.get(0);
+    }
+} // Final closing bracket for BattlePanel class
