@@ -374,34 +374,58 @@ private void loadMovesetsFromFile(Pokemon p) {
                 updateStats();
                 enemyTurn();
             }
-            else if(choice.equals("Poké Ball"))
-                {
-                if(isTrainerBattle)
-                {
-                    logArea.append("You can't catch another trainer's Pokemon!\n");
-                } else
-                {
-                    GameLauncher.bag.remove("Poké Ball");
-                    logArea.append("You threw a Poké Ball...\n");
-                   
-                    double catchChance = 1.0 - ((double)enemy.currentHp / enemy.maxHp);
-                    if(Math.random() < catchChance || Math.random() < 0.3)
-                    {
+else if (choice.equals("Poké Ball")) {
+    if (isTrainerBattle) {
+        logArea.append("You can't catch another trainer's Pokemon!\n");
+    } else {
+        GameLauncher.bag.remove("Poké Ball");
+        logArea.append("You threw a Poké Ball...\n");
+
+        // Use 1.0 to force double precision math
+        double hpPercent = (double) enemy.currentHp / (double) enemy.maxHp;
+        double shakeSuccessProb = 1.0 - hpPercent;
+        
+        // Ensure a minimum 30% success rate per shake
+        if (shakeSuccessProb < 0.3) shakeSuccessProb = 0.3;
+
+        // Final variables for the Timer's inner class
+        final double finalProb = shakeSuccessProb;
+
+        // Use a Swing Timer to create the delay (1000ms = 1 second)
+        javax.swing.Timer shakeTimer = new javax.swing.Timer(1000, new java.awt.event.ActionListener() {
+            int shakeCount = 0;
+
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                shakeCount++;
+                
+                if (Math.random() < finalProb) {
+                    if (shakeCount <= 3) {
+                        logArea.append("Shake " + shakeCount + "...\n");
+                    } else {
+                        // Successfully passed all shakes!
+                        ((javax.swing.Timer)e.getSource()).stop();
                         logArea.append("Gotcha! " + enemy.name + " was caught!\n");
                         GameLauncher.party.add(enemy);
                         GameLauncher.registerCaught(enemy.name);
                         game.endBattle(true);
-                    } else
-                    {
-                        logArea.append("Oh no! The Pokemon broke free!\n");
-                        enemyTurn();
                     }
+                } else {
+                    // Failed a shake
+                    ((javax.swing.Timer)e.getSource()).stop();
+                    logArea.append("Oh no! The Pokemon broke free!\n");
+                    enemyTurn();
                 }
             }
+        });
+
+        shakeTimer.start();
+    }
+}
         }
     }
 
-
+        
     private void updateStats()
     {
         Pokemon p = getActivePokemon();
