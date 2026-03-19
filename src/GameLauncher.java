@@ -3,7 +3,9 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*; 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 public class GameLauncher extends JFrame
@@ -18,6 +20,16 @@ public class GameLauncher extends JFrame
     // Pokedex State
     public static boolean[] pokedexSeen = new boolean[152];
     public static boolean[] pokedexCaught = new boolean[152];
+    public static Map<String, String> pokedex = new HashMap<>();
+    // values: "SEEN", "OWNED"
+    
+    public static List<String> pokedexOrder = List.of
+    (
+        "Bulbasaur", "Ivysaur", "Venusaur",
+        "Charmander", "Charmeleon", "Charizard",
+        "Squirtle", "Wartortle", "Blastoise",
+        "Pikachu"
+    );
    
     // Story Flags
     public static boolean hasStarter = false;

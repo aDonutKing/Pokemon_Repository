@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
-import javax.swing.JOptionPane;
 
 public class WorldPanel extends JPanel
 {
@@ -824,7 +823,9 @@ private static Map<Integer, Map<String, Integer>> encounters = new HashMap<>();
         repaint();
 
         if (currentMap[nx][ny] == 4 && Math.random() < 0.15) {
-            game.startBattle(Pokemon.generateWild(4, 12), false, "Wild Pokemon", "WILD");
+            Pokemon wild = Pokemon.generateWild(4, 12);
+            GameLauncher.pokedex.putIfAbsent(wild.name, "SEEN");
+            game.startBattle(wild, false, "Wild Pokemon", "WILD");
         } else if (currentMap[nx][ny] == 5 && Math.random() < 0.10) {
             game.startBattle(new Pokemon("Tentacool", "WATER", 20), false, "Wild Pokemon", "WILD");
         }
@@ -841,9 +842,9 @@ private static Map<Integer, Map<String, Integer>> encounters = new HashMap<>();
                     if (!GameLauncher.hasStarter) {
                         String[] starters = {"Charmander", "Squirtle", "Bulbasaur"};
                         int c = JOptionPane.showOptionDialog(this, "Choose!", "Oak", 0, 3, null, starters, 0);
-                        if (c == 0) GameLauncher.party.add(new Pokemon("Charmander", "FIRE",  5));
-                        if (c == 1) GameLauncher.party.add(new Pokemon("Squirtle",  "WATER", 5));
-                        if (c == 2) GameLauncher.party.add(new Pokemon("Bulbasaur", "GRASS", 5));
+                        if (c == 0) GameLauncher.pokedex.put("Charmander", "OWNED");
+                        if (c == 1) GameLauncher.pokedex.put("Squirtle", "OWNED");
+                        if (c == 2) GameLauncher.pokedex.put("Bulbasaur", "OWNED");
                         if (c != -1) GameLauncher.hasStarter = true;
                     }
                 } else if (n.type.equals("WARDEN")) {
@@ -914,19 +915,25 @@ private static Map<Integer, Map<String, Integer>> encounters = new HashMap<>();
             g.setColor(Color.WHITE);                  g.drawRoundRect(100, 50, 600, 500, 20, 20);
             g.setColor(new Color(30, 30, 30));        g.fillRect(150, 150, 500, 300);
             g.setColor(Color.WHITE);
-            g.setFont(new Font("Monospaced", Font.BOLD, 36));
-            g.drawString("POKÉDEX", 320, 110);
             g.setFont(new Font("Monospaced", Font.PLAIN, 20));
-            g.setColor(Color.GREEN);
-            g.drawString("001. Bulbasaur  [SEEN]",  170, 190);
-            g.drawString("004. Charmander [OWNED]", 170, 220);
-            g.setColor(Color.GRAY);
-            g.drawString("007. Squirtle   [???]",   170, 250);
-            g.drawString("025. Pikachu    [???]",   170, 280);
-            g.setColor(Color.WHITE);
-            g.setFont(new Font("Arial", Font.ITALIC, 16));
-            g.drawString("Press 'P' to Close", 330, 520);
-        }
+
+            int y = 190;
+            int index = 1;
+
+            for (String name : GameLauncher.pokedexOrder) 
+            {
+                String status = GameLauncher.pokedex.getOrDefault(name, "???");
+
+                if (status.equals("OWNED")) g.setColor(Color.GREEN);
+                else if (status.equals("SEEN")) g.setColor(Color.WHITE);
+                else g.setColor(Color.GRAY);
+
+                String entry = String.format("%03d. %-12s [%s]", index, name, status);
+                g.drawString(entry, 170, y);
+
+                y += 30;
+                index++;
+            }
     }
 
     class NPC      { String name, type, id; int x, y; Pokemon party; NPC(String n, int x, int y, String t, String i){name=n;this.x=x;this.y=y;type=t;id=i;} }
