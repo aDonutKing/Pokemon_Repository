@@ -907,7 +907,8 @@ private static Map<Integer, Map<String, Integer>> encounters = new HashMap<>();
         g.setFont(new Font("Arial", Font.BOLD, 14));
         for (MapLabel l : labels) g.drawString(l.text, l.x * TILE_SIZE + camX, l.y * TILE_SIZE + camY);
 
-        if (showPokedex) {
+        if (showPokedex) 
+        {
             g.setColor(new Color(0, 0, 0, 180));     g.fillRect(0, 0, 800, 600);
             g.setColor(new Color(220, 20, 60));       g.fillRoundRect(100, 50, 600, 500, 20, 20);
             g.setColor(Color.WHITE);                  g.drawRoundRect(100, 50, 600, 500, 20, 20);
