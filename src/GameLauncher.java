@@ -36,6 +36,8 @@ public class GameLauncher extends JFrame
    
     private String currentEnemyID = "";
 
+    PokemonData.loadFromFile("data/pokemon.txt"); // Load Pokemon data at startup
+    
     public GameLauncher()
     {
         setTitle("Java Pokémon: Full Battle System");
@@ -66,10 +68,13 @@ public class GameLauncher extends JFrame
         cardLayout.show(mainPanel, "MENU");
     }
     
-    public void startGame(boolean isNewGame) {
-        if (isNewGame) {
+    public void startGame(boolean isNewGame) 
+    {
+        if (isNewGame) 
+        {
             // Starter Items
-            if(bag.isEmpty()) {
+            if(bag.isEmpty()) 
+            {
                 bag.add("Potion"); bag.add("Potion"); bag.add("Poké Ball"); bag.add("Poké Ball");
                 tms.add("TM01 - Tackle"); // A starter TM for testing
             }
@@ -77,12 +82,14 @@ public class GameLauncher extends JFrame
         }
         
         cardLayout.show(mainPanel, "WORLD");
-        if (worldPanel != null) {
+        if (worldPanel != null) 
+        {
             worldPanel.requestFocusInWindow(); 
         }
     }
 
-    private void setupMenuBar() {
+    private void setupMenuBar() 
+    {
         JMenuBar menuBar = new JMenuBar();
         JMenu fileMenu = new JMenu("File");
         
@@ -90,10 +97,13 @@ public class GameLauncher extends JFrame
         JMenuItem loadItem = new JMenuItem("Load Game");
 
         saveItem.addActionListener(e -> saveGame());
-        loadItem.addActionListener(e -> {
-            if(loadGame()) {
+        loadItem.addActionListener(e -> 
+        {
+            if(loadGame()) 
+            {
                 startGame(false); 
-                if(worldPanel != null) {
+                if(worldPanel != null) 
+                {
                     worldPanel.refreshMap(); 
                 }
             }
@@ -105,8 +115,10 @@ public class GameLauncher extends JFrame
         setJMenuBar(menuBar);
     }
 
-    public void saveGame() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("save.dat"))) {
+    public void saveGame() 
+    {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("save.dat"))) 
+        {
             SaveState state = new SaveState();
             state.playerName = playerName; 
             state.party = party;
@@ -123,21 +135,25 @@ public class GameLauncher extends JFrame
             oos.writeObject(state);
             JOptionPane.showMessageDialog(this, "Game Saved Successfully!");
             if(worldPanel != null) worldPanel.requestFocusInWindow();
-        } catch (Exception e) {
+        } catch (Exception e) 
+        {
             e.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error saving game: " + e.getMessage());
         }
     }
 
-    public boolean loadGame() {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("save.dat"))) {
+    public boolean loadGame() 
+    {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("save.dat"))) 
+        {
             SaveState state = (SaveState) ois.readObject();
             playerName = state.playerName; 
             party = state.party;
             bag = state.bag;
             
             // NEW: Safely load TMs (in case an old save file doesn't have them)
-            if (state.tms != null) {
+            if (state.tms != null) 
+            {
                 tms = state.tms;
             }
             
@@ -151,7 +167,8 @@ public class GameLauncher extends JFrame
             
             JOptionPane.showMessageDialog(this, "Game Loaded Successfully! Welcome back, " + playerName + "!");
             return true;
-        } catch (Exception e) {
+        } catch (Exception e) 
+        {
             JOptionPane.showMessageDialog(this, "No save file found or error loading.");
             return false;
         }
@@ -161,8 +178,10 @@ public class GameLauncher extends JFrame
     {
         this.currentEnemyID = id;
        
-        for(int i=1; i<Pokedex.NAMES.length; i++) {
-            if(Pokedex.NAMES[i].equals(enemy.name)) {
+        for(int i=1; i<Pokedex.NAMES.length; i++) 
+        {
+            if(Pokedex.NAMES[i].equals(enemy.name)) 
+            {
                 pokedexSeen[i] = true;
                 break;
             }
@@ -194,31 +213,38 @@ public class GameLauncher extends JFrame
     }
 
     // --- NEW: Inventory Navigation Methods ---
-    public void openInventory() {
+    public void openInventory() 
+    {
         inventoryPanel.refresh();
         cardLayout.show(mainPanel, "BAG");
         inventoryPanel.requestFocus();
     }
 
-    public void closeInventory() {
+    public void closeInventory() 
+    {
         cardLayout.show(mainPanel, "WORLD");
         if (worldPanel != null) worldPanel.requestFocusInWindow();
     }
 
-    public void openPokedex() {
+    public void openPokedex() 
+    {
         pokedexPanel.refresh();
         cardLayout.show(mainPanel, "DEX");
         pokedexPanel.requestFocus();
     }
 
-    public void closePokedex() {
+    public void closePokedex() 
+    {
         cardLayout.show(mainPanel, "WORLD");
         worldPanel.requestFocusInWindow();
     }
    
-    public static void registerCaught(String name) {
-         for(int i=1; i<Pokedex.NAMES.length; i++) {
-            if(Pokedex.NAMES[i].equals(name)) {
+    public static void registerCaught(String name) 
+    {
+         for(int i=1; i<Pokedex.NAMES.length; i++) 
+        {
+            if(Pokedex.NAMES[i].equals(name)) 
+            {
                 pokedexCaught[i] = true;
                 pokedexSeen[i] = true;
                 break;
@@ -233,13 +259,15 @@ public class GameLauncher extends JFrame
 }
 
 // --- NEW CLASS: INVENTORY PANEL ---
-class InventoryPanel extends JPanel {
+class InventoryPanel extends JPanel 
+{
     private GameLauncher game;
     private DefaultListModel<String> listModel;
     private JList<String> itemList;
     private JComboBox<String> categoryBox;
 
-    public InventoryPanel(GameLauncher game) {
+    public InventoryPanel(GameLauncher game) 
+    {
         this.game = game;
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
@@ -285,52 +313,65 @@ class InventoryPanel extends JPanel {
         add(footer, BorderLayout.SOUTH);
     }
 
-    public void refresh() {
+    public void refresh() 
+    {
         listModel.clear();
         String selectedCategory = (String) categoryBox.getSelectedItem();
 
-        if ("Items".equals(selectedCategory)) {
-            for (String item : GameLauncher.bag) {
+        if ("Items".equals(selectedCategory)) 
+        {
+            for (String item : GameLauncher.bag) 
+            {
                 listModel.addElement(item);
             }
-        } else {
-            for (String tm : GameLauncher.tms) {
+        } else 
+        {
+            for (String tm : GameLauncher.tms) 
+            {
                 listModel.addElement(tm);
             }
         }
     }
 
-    private void useSelectedItem() {
+    private void useSelectedItem() 
+    {
         String selected = itemList.getSelectedValue();
-        if (selected == null) {
+        if (selected == null) 
+        {
             JOptionPane.showMessageDialog(this, "Please select an item first!");
             return;
         }
 
-        if (GameLauncher.party.isEmpty()) {
+        if (GameLauncher.party.isEmpty()) 
+        {
             JOptionPane.showMessageDialog(this, "You have no Pokémon to use this on!");
             return;
         }
 
         // Ask which Pokemon to use it on
         String[] partyNames = new String[GameLauncher.party.size()];
-        for (int i = 0; i < GameLauncher.party.size(); i++) {
+        for (int i = 0; i < GameLauncher.party.size(); i++) 
+        {
             partyNames[i] = GameLauncher.party.get(i).name + " (HP: " + GameLauncher.party.get(i).currentHp + "/" + GameLauncher.party.get(i).maxHp + ")";
         }
 
         String target = (String) JOptionPane.showInputDialog(this, "Use " + selected + " on which Pokémon?", 
                         "Select Target", JOptionPane.QUESTION_MESSAGE, null, partyNames, partyNames[0]);
 
-        if (target != null) {
+        if (target != null) 
+        {
             int targetIndex = -1;
-            for (int i = 0; i < partyNames.length; i++) {
+            for (int i = 0; i < partyNames.length; i++) 
+            {
                 if (partyNames[i].equals(target)) targetIndex = i;
             }
 
             Pokemon p = GameLauncher.party.get(targetIndex);
 
-            if (selected.equals("Potion")) {
-                if (p.currentHp == p.maxHp) {
+            if (selected.equals("Potion")) 
+            {
+                if (p.currentHp == p.maxHp) 
+                {
                     JOptionPane.showMessageDialog(this, p.name + "'s HP is already full!");
                     return;
                 }
@@ -338,18 +379,24 @@ class InventoryPanel extends JPanel {
                 GameLauncher.bag.remove("Potion");
                 JOptionPane.showMessageDialog(this, "Healed " + p.name + " for 20 HP!");
                 refresh();
-            } else if (selected.equals("Poké Ball")) {
+            } 
+            else if (selected.equals("Poké Ball")) 
+                {
                  JOptionPane.showMessageDialog(this, "Professor Oak's words echoed: There's a time and place for everything! (Use in battle)");
-            } else if (selected.startsWith("TM")) {
+                } 
+            else if (selected.startsWith("TM")) 
+                {
                  JOptionPane.showMessageDialog(this, "TM Logic goes here! (Requires Move learning logic)");
-            }
+                }
         }
     }
 }
 
 // --- MAIN MENU PANEL ---
-class MainMenuPanel extends JPanel {
-    public MainMenuPanel(GameLauncher game) {
+class MainMenuPanel extends JPanel 
+{
+    public MainMenuPanel(GameLauncher game) 
+    {
         setLayout(new GridBagLayout());
         setBackground(new Color(135, 206, 250)); 
 
@@ -377,9 +424,11 @@ class MainMenuPanel extends JPanel {
         gbc.gridy++;
         JButton newGameBtn = new JButton("NEW GAME");
         newGameBtn.setFont(new Font("Monospaced", Font.BOLD, 20));
-        newGameBtn.addActionListener(e -> {
+        newGameBtn.addActionListener(e -> 
+        {
             String typedName = nameField.getText().trim();
-            if(!typedName.isEmpty()) {
+            if(!typedName.isEmpty()) 
+            {
                 GameLauncher.playerName = typedName;
             }
             game.startGame(true); 
@@ -389,8 +438,10 @@ class MainMenuPanel extends JPanel {
         gbc.gridy++;
         JButton loadGameBtn = new JButton("LOAD GAME");
         loadGameBtn.setFont(new Font("Monospaced", Font.BOLD, 20));
-        loadGameBtn.addActionListener(e -> {
-            if(game.loadGame()) {
+        loadGameBtn.addActionListener(e -> 
+        {
+            if(game.loadGame()) 
+            {
                 game.startGame(false); 
             }
         });
@@ -399,7 +450,8 @@ class MainMenuPanel extends JPanel {
 }
 
 // --- SAVE STATE DATA ---
-class SaveState implements Serializable {
+class SaveState implements Serializable 
+{
     private static final long serialVersionUID = 1L; 
     String playerName; 
     List<Pokemon> party;
@@ -412,13 +464,15 @@ class SaveState implements Serializable {
 }
 
 // --- POKEDEX PANEL ---
-class PokedexPanel extends JPanel {
+class PokedexPanel extends JPanel 
+{
     private GameLauncher game;
     private DefaultListModel<String> listModel;
     private JList<String> pokemonList;
     private JLabel statsLabel;
 
-    public PokedexPanel(GameLauncher game) {
+    public PokedexPanel(GameLauncher game) 
+    {
         this.game = game;
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
@@ -459,24 +513,29 @@ class PokedexPanel extends JPanel {
         add(footer, BorderLayout.SOUTH);
     }
 
-    public void refresh() {
+    public void refresh() 
+    {
         listModel.clear();
         int seenCount = 0;
         int caughtCount = 0;
 
-        for (int i = 1; i < Pokedex.NAMES.length; i++) {
+        for (int i = 1; i < Pokedex.NAMES.length; i++) 
+        {
             String entry;
             String num = String.format("%03d", i);
             String name = Pokedex.NAMES[i];
 
-            if (GameLauncher.pokedexCaught[i]) {
+            if (GameLauncher.pokedexCaught[i]) 
+            {
                 entry = " " + num + "   " + name + "  [O]"; 
                 seenCount++;
                 caughtCount++;
-            } else if (GameLauncher.pokedexSeen[i]) {
+            } else if (GameLauncher.pokedexSeen[i]) 
+            {
                 entry = " " + num + "   " + name;
                 seenCount++;
-            } else {
+            } else 
+            {
                 entry = " " + num + "   ----------";
             }
             listModel.addElement(entry);
@@ -568,28 +627,92 @@ class Pokemon implements Serializable
     private static final long serialVersionUID = 1L;
     String name, type;
     int maxHp, currentHp, level, xp, xpToNext;
+    int attack, defense, spAtk, spDef, speed;
     java.util.List<Move> moves = new java.util.ArrayList<>();
    
-    public Pokemon(String name, String type, int level)
-    {
-        this.name = name; this.type = type; this.level = level;
-        this.maxHp = 20 + (level * 6); this.currentHp = maxHp;
-        this.xpToNext = level * 15;
-       
-        if(moves.isEmpty())
-        {
-            learnBaseMoves();
-        }
-    }
+    class PokemonData 
+{
+    static List<Pokemon> allPokemon = new ArrayList<>();
 
-    public static Pokemon generateWild(int minLvl, int maxLvl)
+    public static void loadFromFile(String filePath) 
+    {
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) 
+        {
+            String line;
+
+            while ((line = br.readLine()) != null) 
+            {
+                String[] p = line.split(",");
+
+                String name = p[1];
+
+                String type1 = p[3].toUpperCase();
+                String type2 = p[4].isEmpty() ? "" : "/" + p[4].toUpperCase();
+                String type = type1 + type2;
+
+                int hp = Integer.parseInt(p[5]);
+                int atk = Integer.parseInt(p[6]);
+                int def = Integer.parseInt(p[7]);
+                int spAtk = Integer.parseInt(p[8]);
+                int spDef = Integer.parseInt(p[9]);
+                int speed = Integer.parseInt(p[10]);
+
+                Pokemon mon = new Pokemon(name, type1, 5);
+
+                mon.maxHp = hp;
+                mon.currentHp = hp;
+
+                mon.attack = atk;
+                mon.defense = def;
+                mon.spAtk = spAtk;
+                mon.spDef = spDef;
+                mon.speed = speed;
+
+                allPokemon.add(mon);
+            }
+
+            System.out.println("Loaded " + allPokemon.size() + " Pokémon!");
+
+        } 
+        catch (Exception e) 
+            {
+            e.printStackTrace();
+            }
+    }
+}
+
+    public Pokemon(String name2, String type2, int lvl) 
+    {
+        //TODO Auto-generated constructor stub
+    }
+    public static Pokemon generateWild1(int minLvl, int maxLvl)
     {
         java.util.Random r = new java.util.Random();
         int lvl = minLvl + r.nextInt(maxLvl - minLvl + 1);
-        int id = r.nextInt(151) + 1;
-        return new Pokemon(Pokedex.NAMES[id], Pokedex.TYPES[id], lvl);
-    }
+        public static Pokemon generateWild(int minLvl, int maxLvl)
+        {
+            Random r = new Random();
+            int lvl = minLvl + r.nextInt(maxLvl - minLvl + 1);
 
+            Pokemon base = PokemonData.allPokemon.get(
+                r.nextInt(PokemonData.allPokemon.size())
+            );
+
+            Pokemon wild = new Pokemon(base.name, base.type, lvl);
+
+            // Copy stats
+            wild.maxHp = base.maxHp;
+            wild.currentHp = base.maxHp;
+            wild.attack = base.attack;
+            wild.defense = base.defense;
+            wild.spAtk = base.spAtk;
+            wild.spDef = base.spDef;
+            wild.speed = base.speed;
+
+            return wild;
+        }
+    
+    }
     private void learnBaseMoves()
     {
         moves.clear();
