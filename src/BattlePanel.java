@@ -25,8 +25,8 @@ public class BattlePanel extends JPanel
 
     private int menuState = 0;
 
-    // Move database: move name (lowercase) → Move object with real stats
-    // Loaded once from your moves data file on first battle
+    // Move database: move name (lowercase) → Move template with real stats
+    // Loaded once from Moves.txt on first battle
     private java.util.Map<String, Move> moveDatabase = new java.util.HashMap<>();
     private boolean moveDatabaseLoaded = false;
 
@@ -144,36 +144,34 @@ public class BattlePanel extends JPanel
     // -----------------------------------------------------------------------
     public void setupBattle(Pokemon e, boolean trainer, String name)
     {
-        this.enemy          = e;
+        this.enemy           = e;
         this.isTrainerBattle = trainer;
 
         // Scale wild Pokemon to area level
         if (!trainer)
         {
-            enemy.level  = getAreaLevel();
-            enemy.maxHp  = 20 + enemy.level * 5;
+            enemy.level     = getAreaLevel();
+            enemy.maxHp     = 20 + enemy.level * 5;
             enemy.currentHp = enemy.maxHp;
         }
 
-        // Load moves BEFORE healing so HP is already correct
+        // Load moves using the real move database
         loadMovesetsFromFile(getActivePokemon());
         loadMovesetsFromFile(enemy);
 
-        // FIX: only healFull on the enemy (player party keeps current HP)
+        // Heal enemy only (player keeps current HP)
         enemy.healFull();
 
         logArea.setText("Battle started against " + name + "!\n");
-
         showMainMenu();
         updateStats();
     }
 
     // -----------------------------------------------------------------------
-    // Load full move database from your moves data file.
-    // Expected CSV format (one move per line):
-    //   index, InternalName, DisplayName, hex, power, type, category, accuracy, pp, ...
-    // Example: 28,BITE,Bite,00F,60,DARK,Physical,100,25,30,00,0,abe,Tough,...
-    //   col 0 = index, col 2 = display name, col 4 = power, col 5 = type, col 8 = pp
+    // Load full move database from Moves.txt
+    // Format: index,INTERNALNAME,DisplayName,hex,power,type,category,accuracy,pp,...
+    // Example: 28,BITE,Bite,00F,60,DARK,Physical,100,25,...
+    //   col 2 = display name, col 4 = power, col 5 = type, col 8 = pp
     // -----------------------------------------------------------------------
     private void loadMoveDatabase()
     {
@@ -181,8 +179,7 @@ public class BattlePanel extends JPanel
         moveDatabaseLoaded = true;
 
         String userDir = System.getProperty("user.dir");
-        // Add whatever filenames your moves file might have
-        String[] possibleNames = { "moves.csv", "Moves.csv", "moves.txt", "Moves.txt", "PokemonMoves.csv" };
+        String[] possibleNames = { "Moves.txt", "moves.txt", "Moves.csv", "moves.csv", "PokemonMoves.csv" };
         File dbFile = null;
 
         for (String fname : possibleNames) {
@@ -197,7 +194,7 @@ public class BattlePanel extends JPanel
         }
 
         if (dbFile == null) {
-            System.out.println("Move database file not found — moves will use default stats.");
+            System.out.println("Move database not found — moves will use default stats.");
             return;
         }
 
@@ -208,38 +205,32 @@ public class BattlePanel extends JPanel
                 String line = sc.nextLine().trim();
                 if (line.isEmpty() || line.startsWith("#")) continue;
 
-                // Split on commas but respect quoted fields (descriptions contain commas)
+                // Use quote-aware splitter so descriptions with commas don't shift columns
                 String[] col = splitCsv(line);
-
-                // Need at least 9 columns: idx, internal, display, hex, power, type, category, acc, pp
                 if (col.length < 9) continue;
 
                 try {
-                    String displayName = col[2].trim();                      // e.g. "Bite"
-                    int    power       = Integer.parseInt(col[4].trim());    // e.g. 60
-                    String type        = col[5].trim().toUpperCase();        // e.g. "DARK"
-                    int    pp          = Integer.parseInt(col[8].trim());    // e.g. 25
+                    String displayName = col[2].trim();
+                    int    power       = Integer.parseInt(col[4].trim());
+                    String type        = col[5].trim().toUpperCase();
+                    int    pp          = Integer.parseInt(col[8].trim());
 
-                    // Cap PP at 40; status moves with 0 power keep pp as-is
                     if (pp <= 0) pp = 10;
                     if (pp > 40) pp = 40;
 
-                    Move m = new Move(displayName, type, power, pp);
-                    // Key by lowercase display name for case-insensitive lookup
-                    moveDatabase.put(displayName.toLowerCase(), m);
-                } catch (NumberFormatException e) {
+                    moveDatabase.put(displayName.toLowerCase(), new Move(displayName, type, power, pp));
+                } catch (NumberFormatException ex) {
                     // Skip malformed lines silently
                 }
             }
             System.out.println("Move database loaded: " + moveDatabase.size() + " moves.");
-        } catch (Exception e) {
-            System.out.println("Error reading move database: " + e.getMessage());
+        } catch (Exception ex) {
+            System.out.println("Error reading move database: " + ex.getMessage());
         }
     }
 
     // -----------------------------------------------------------------------
-    // CSV splitter that respects quoted fields containing commas.
-    // e.g. 28,BITE,Bite,00F,60,DARK,Physical,100,25,...,"The target is bitten..."
+    // CSV splitter that respects quoted fields (descriptions contain commas)
     // -----------------------------------------------------------------------
     private String[] splitCsv(String line)
     {
@@ -250,55 +241,49 @@ public class BattlePanel extends JPanel
         for (int i = 0; i < line.length(); i++) {
             char c = line.charAt(i);
             if (c == '"') {
-                inQuotes = !inQuotes;           // toggle quoted mode, don't add the quote char
+                inQuotes = !inQuotes;
             } else if (c == ',' && !inQuotes) {
-                fields.add(sb.toString());      // end of field
+                fields.add(sb.toString());
                 sb.setLength(0);
             } else {
                 sb.append(c);
             }
         }
-        fields.add(sb.toString());              // last field
+        fields.add(sb.toString());
         return fields.toArray(new String[0]);
     }
 
     // -----------------------------------------------------------------------
-    // Look up a move name in the database; return a Move with real stats.
-    // Falls back to generic stats if the move isn't found.
+    // Look up a move in the database by name; fallback to defaults if missing
     // -----------------------------------------------------------------------
     private Move createMoveFromDatabase(String moveName)
     {
         Move template = moveDatabase.get(moveName.toLowerCase());
         if (template != null) {
-            // Return a fresh Move with the real stats (fresh AP = maxAp)
             return new Move(template.name, template.type, template.power, template.maxAp);
         }
-        // Fallback — move not in database yet
-        System.out.println("WARNING: '" + moveName + "' not found in move database, using defaults.");
+        System.out.println("WARNING: '" + moveName + "' not in move database, using defaults.");
         return new Move(moveName, "NORMAL", 40, 35);
     }
 
     // -----------------------------------------------------------------------
     // Load movesets from Movesets.txt
+    // Format per line: PokemonName,MoveName,LevelReq,MoveName,LevelReq,...
     // -----------------------------------------------------------------------
     private void loadMovesetsFromFile(Pokemon p)
     {
         if (p == null) return;
 
-        // Make sure the move database is loaded before we look up stats
-        loadMoveDatabase();
+        loadMoveDatabase(); // Ensure database is ready first
 
         String userDir = System.getProperty("user.dir");
-        String[] possibleNames = { "Movesets.txt", "Movesets.txt.txt", "moves.txt" };
+        String[] possibleNames = { "Movesets.txt", "Movesets.txt.txt" };
         File myFile = null;
 
-        // Try project root
         for (String fname : possibleNames) {
             File testFile = new File(userDir, fname);
             if (testFile.exists()) { myFile = testFile; break; }
         }
-
-        // Try src/ subfolder (Eclipse / IntelliJ)
         if (myFile == null) {
             for (String fname : possibleNames) {
                 File testFile = new File(userDir + File.separator + "src", fname);
@@ -307,11 +292,9 @@ public class BattlePanel extends JPanel
         }
 
         if (myFile == null) {
-            System.out.println("CRITICAL ERROR: Could not find Movesets.txt anywhere in " + userDir);
+            System.out.println("CRITICAL ERROR: Could not find Movesets.txt in " + userDir);
             return;
         }
-
-        System.out.println("SUCCESS: Loading moves from " + myFile.getAbsolutePath());
 
         try (Scanner reader = new Scanner(myFile)) {
             while (reader.hasNextLine()) {
@@ -321,23 +304,19 @@ public class BattlePanel extends JPanel
                 String[] parts = line.split(",");
                 if (parts.length < 1) continue;
 
-                String pokeNameInFile = parts[0].trim();
-
-                if (pokeNameInFile.equalsIgnoreCase(p.name)) {
+                if (parts[0].trim().equalsIgnoreCase(p.name)) {
                     p.moves.clear();
 
-                    // Each move entry: moveName, levelRequired (pairs starting at index 1)
                     for (int i = 1; i + 1 < parts.length; i += 2) {
                         try {
                             String moveName = parts[i].trim();
                             int    levelReq = Integer.parseInt(parts[i + 1].trim());
 
                             if (p.level >= levelReq) {
-                                // Look up real stats from the move database
                                 p.moves.add(createMoveFromDatabase(moveName));
                             }
                         } catch (NumberFormatException ex) {
-                            System.out.println("WARNING: Bad level value near index " + i + " for " + p.name);
+                            System.out.println("WARNING: Bad level near index " + i + " for " + p.name);
                         }
                     }
 
@@ -349,7 +328,7 @@ public class BattlePanel extends JPanel
                         p.moves.clear();
                         p.moves.addAll(lastFour);
                     }
-                    break; // Found the Pokemon — stop scanning
+                    break;
                 }
             }
         } catch (Exception ex) {
@@ -364,7 +343,6 @@ public class BattlePanel extends JPanel
     {
         menuState = 0;
         backBtn.setVisible(false);
-
         btn1.setText("FIGHT");
         btn2.setText("BAG");
         btn3.setText("POKEMON");
@@ -375,9 +353,7 @@ public class BattlePanel extends JPanel
     {
         menuState = 1;
         backBtn.setVisible(true);
-
         Pokemon p = getActivePokemon();
-
         btn1.setText(formatMoveText(p, 0));
         btn2.setText(formatMoveText(p, 1));
         btn3.setText(formatMoveText(p, 2));
@@ -420,7 +396,6 @@ public class BattlePanel extends JPanel
         }
 
         m.currentAp--;
-
         logArea.append(p.name + " used " + m.name + "!\n");
 
         double mult = Pokemon.getEffectiveness(m.type, enemy.type);
@@ -429,11 +404,11 @@ public class BattlePanel extends JPanel
 
         enemy.takeDamage(dmg);
 
-        if (mult > 1.0) logArea.append("It's super effective!\n");
+        if (mult > 1.0)             logArea.append("It's super effective!\n");
         else if (mult < 1.0 && mult > 0) logArea.append("It's not very effective...\n");
 
         updateStats();
-        showMoveMenu(); // FIX: refresh AP display after use
+        showMoveMenu(); // Refresh AP display
 
         if (enemy.currentHp <= 0) winBattle();
         else enemyTurn();
@@ -448,7 +423,7 @@ public class BattlePanel extends JPanel
         if (p == null || p.currentHp <= 0) return;
         if (enemy.moves.isEmpty()) return;
 
-        // FIX: pick a move that still has AP; skip exhausted ones
+        // Only pick moves that still have AP
         List<Move> usable = new ArrayList<>();
         for (Move mv : enemy.moves) {
             if (mv.currentAp > 0) usable.add(mv);
@@ -460,14 +435,13 @@ public class BattlePanel extends JPanel
         }
 
         Move m = usable.get(new Random().nextInt(usable.size()));
-        m.currentAp--; // FIX: enemy moves now cost AP
+        m.currentAp--;
 
         double mult = Pokemon.getEffectiveness(m.type, p.type);
         int dmg = (int)((enemy.level * 2 * m.power / 25.0) * mult);
         if (m.power > 0 && dmg == 0) dmg = 1;
 
         p.takeDamage(dmg);
-
         logArea.append("Enemy " + enemy.name + " used " + m.name + "!\n");
         if (mult > 1.0) logArea.append("It's super effective!\n");
 
@@ -503,7 +477,7 @@ public class BattlePanel extends JPanel
             GameLauncher.bag.remove("Potion");
             logArea.append("Used Potion on " + p.name + "!\n");
             updateStats();
-            showMainMenu(); // FIX: return to main menu after item use
+            showMainMenu();
             enemyTurn();
 
         } else if (choice.equals("Poké Ball")) {
@@ -513,17 +487,42 @@ public class BattlePanel extends JPanel
                 GameLauncher.bag.remove("Poké Ball");
                 logArea.append("You threw a Poké Ball...\n");
 
-                double catchChance = 1.0 - ((double) enemy.currentHp / enemy.maxHp);
-                if (Math.random() < catchChance || Math.random() < 0.3) {
-                    logArea.append("Gotcha! " + enemy.name + " was caught!\n");
-                    GameLauncher.party.add(enemy);
-                    GameLauncher.registerCaught(enemy.name);
-                    game.endBattle(true);
-                } else {
-                    logArea.append("Oh no! The Pokemon broke free!\n");
-                    showMainMenu(); // FIX: show menu before enemy acts
-                    enemyTurn();
-                }
+                double hpPercent      = (double) enemy.currentHp / (double) enemy.maxHp;
+                double shakeSuccessProb = Math.max(1.0 - hpPercent, 0.3);
+                final double finalProb  = shakeSuccessProb;
+
+                // Animate 3 shakes with 1-second delays using a Swing Timer
+                javax.swing.Timer shakeTimer = new javax.swing.Timer(1000,
+                    new java.awt.event.ActionListener() {
+                        int shakeCount = 0;
+
+                        @Override
+                        public void actionPerformed(java.awt.event.ActionEvent e) {
+                            shakeCount++;
+
+                            if (Math.random() >= finalProb) {
+                                // Failed a shake — break out
+                                ((javax.swing.Timer) e.getSource()).stop();
+                                logArea.append("Oh no! The Pokemon broke free!\n");
+                                showMainMenu();
+                                enemyTurn();
+                                return;
+                            }
+
+                            if (shakeCount < 3) {
+                                logArea.append("Shake " + shakeCount + "...\n");
+                            } else {
+                                // Passed all 3 shakes — caught!
+                                ((javax.swing.Timer) e.getSource()).stop();
+                                logArea.append("Gotcha! " + enemy.name + " was caught!\n");
+                                GameLauncher.party.add(enemy);
+                                GameLauncher.registerCaught(enemy.name);
+                                game.endBattle(true);
+                            }
+                        }
+                    });
+
+                shakeTimer.start();
             }
         }
     }
@@ -572,16 +571,15 @@ public class BattlePanel extends JPanel
         }
     }
 
-    // FIX: Use a relative, cross-platform path instead of a hardcoded Windows path
     private ImageIcon loadPokemonImage(String name)
     {
         String lowerCaseName = name.toLowerCase();
 
         String[] searchPaths = {
-            // Original network/school drive path — checked first
+            // School network drive — checked first
             "T:\\HS\\Student\\Computer Science\\Software Engineering\\Pokemon Sprites\\" + lowerCaseName + ".jpg",
             "T:\\HS\\Student\\Computer Science\\Software Engineering\\Pokemon Sprites\\" + lowerCaseName + ".png",
-            // Relative fallbacks for running from project root
+            // Relative fallbacks
             "Pokemon Sprites" + File.separator + lowerCaseName + ".png",
             "Pokemon Sprites" + File.separator + lowerCaseName + ".jpg",
             "src" + File.separator + "Pokemon Sprites" + File.separator + lowerCaseName + ".png",
@@ -597,7 +595,7 @@ public class BattlePanel extends JPanel
             }
         }
 
-        return null; // No image found
+        return null;
     }
 
     private void updateBarColor(JProgressBar bar)
@@ -626,7 +624,6 @@ public class BattlePanel extends JPanel
             partyNames[i] = pk.name + " (HP: " + pk.currentHp + "/" + pk.maxHp + ")";
         }
 
-        // FIX: snapshot the active Pokemon by reference before the loop
         Pokemon activeBefore = getActivePokemon();
 
         while (true) {
@@ -645,11 +642,10 @@ public class BattlePanel extends JPanel
                 if (partyNames[i].equals(choice)) { selectedIndex = i; break; }
             }
 
-            if (selectedIndex < 0) continue; // Shouldn't happen but guard anyway
+            if (selectedIndex < 0) continue;
 
             Pokemon selected = GameLauncher.party.get(selectedIndex);
 
-            // FIX: compare by object identity, not by index 0
             if (selected == activeBefore) {
                 if (forced) {
                     JOptionPane.showMessageDialog(this,
@@ -667,11 +663,10 @@ public class BattlePanel extends JPanel
                 else return;
             }
 
-            // Perform the switch
             GameLauncher.party.remove(selectedIndex);
             GameLauncher.party.add(0, selected);
 
-            loadMovesetsFromFile(selected); // Reload moves for switched-in Pokemon
+            loadMovesetsFromFile(selected);
 
             logArea.append("Go! " + getActivePokemon().name + "!\n");
             updateStats();
@@ -711,11 +706,7 @@ public class BattlePanel extends JPanel
             p.gainXp(xpGain);
             logArea.append("Gained " + xpGain + " XP!\n");
 
-            // FIX: clamp level AFTER gainXp (gainXp may have pushed past 100)
-            if (p.level > 100) {
-                p.level = 100;
-                p.xp    = 0;
-            }
+            if (p.level > 100) { p.level = 100; p.xp = 0; }
 
             if (p.level > oldLevel) checkNewMoves(p);
             checkEvolution();
@@ -734,19 +725,15 @@ public class BattlePanel extends JPanel
 
     private void checkNewMoves(Pokemon p)
     {
-        // Moves are handled by loadMovesetsFromFile based on level.
-        // Re-load so any newly unlocked moves are picked up on level-up.
-        loadMovesetsFromFile(p);
+        loadMovesetsFromFile(p); // Re-load to pick up any newly level-gated moves
     }
 
-    // FIX: learnMove now has a complete forget-move dialog when party is full
     private void learnMove(Pokemon p, Move newMove)
     {
         if (p.moves.size() < 4) {
             p.moves.add(newMove);
             logArea.append(p.name + " learned " + newMove.name + "!\n");
         } else {
-            // Ask player which move to forget
             String[] moveNames = new String[p.moves.size()];
             for (int i = 0; i < p.moves.size(); i++) moveNames[i] = p.moves.get(i).name;
 
@@ -793,12 +780,10 @@ public class BattlePanel extends JPanel
         if (evolved) {
             logArea.append("\nWhat? " + oldName + " is evolving!\n");
 
-            // Boost stats on evolution
             p.maxHp    += 20;
             p.currentHp = p.maxHp;
 
-            // Load moves for the new form
-            loadMovesetsFromFile(p);
+            loadMovesetsFromFile(p); // Load moves for the new form
 
             JOptionPane.showMessageDialog(this,
                 oldName + " has evolved into " + p.name + "!",
