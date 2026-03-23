@@ -218,7 +218,18 @@ public class BattlePanel extends JPanel
                     if (pp <= 0) pp = 10;
                     if (pp > 40) pp = 40;
 
-                    moveDatabase.put(displayName.toLowerCase(), new Move(displayName, type, power, pp));
+                    Move m = new Move(displayName, type, power, pp);
+
+                    // Store under exact lowercase name  e.g. "sand-attack"
+                    moveDatabase.put(displayName.toLowerCase(), m);
+
+                    // Also store under normalized key (no spaces, no hyphens, lowercase)
+                    // e.g. "sand-attack" → "sandattack", "ThunderShock" → "thundershock"
+                    // This lets Movesets.txt use "Sand Attack" or "Thunder Shock" and still match
+                    String normalized = displayName.toLowerCase()
+                                                   .replace(" ", "")
+                                                   .replace("-", "");
+                    moveDatabase.put(normalized, m);
                 } catch (NumberFormatException ex) {
                     // Skip malformed lines silently
                 }
@@ -258,10 +269,19 @@ public class BattlePanel extends JPanel
     // -----------------------------------------------------------------------
     private Move createMoveFromDatabase(String moveName)
     {
+        // Try exact lowercase match first  e.g. "bite"
         Move template = moveDatabase.get(moveName.toLowerCase());
+
+        // If not found, try normalized (strip spaces & hyphens)  e.g. "sand attack" → "sandattack"
+        if (template == null) {
+            String normalized = moveName.toLowerCase().replace(" ", "").replace("-", "");
+            template = moveDatabase.get(normalized);
+        }
+
         if (template != null) {
             return new Move(template.name, template.type, template.power, template.maxAp);
         }
+
         System.out.println("WARNING: '" + moveName + "' not in move database, using defaults.");
         return new Move(moveName, "NORMAL", 40, 35);
     }
@@ -757,41 +777,156 @@ public class BattlePanel extends JPanel
     }
 
     // -----------------------------------------------------------------------
-    // Evolution check
+    // Evolution database: pokemon name (lowercase) → EvolutionEntry
+    // Loaded once from evolutions.txt (or Evolutions.txt)
+    //
+    // File format — one evolution per line:
+    //   BaseName,EvolvesInto,Method,Requirement
+    //
+    // Examples:
+    //   Charmander,Charmeleon,Level,16
+    //   Poliwhirl,Poliwrath,Level,36
+    //   Eevee,Vaporeon,Water Stone,0
+    //
+    // Only "Level" evolutions are triggered automatically in battle.
+    // Stone evolutions can be added later via the bag/item system.
+    // -----------------------------------------------------------------------
+    private static class EvolutionEntry {
+        String evolvesInto;
+        String method;        // e.g. "Level", "Water Stone", "Thunder Stone"
+        int    levelRequired; // only used when method is "Level"
+        EvolutionEntry(String into, String method, int level) {
+            this.evolvesInto   = into;
+            this.method        = method;
+            this.levelRequired = level;
+        }
+    }
+
+    private java.util.Map<String, EvolutionEntry> evolutionDatabase = new java.util.HashMap<>();
+    private boolean evolutionDatabaseLoaded = false;
+
+    private void loadEvolutionDatabase()
+    {
+        if (evolutionDatabaseLoaded) return;
+        evolutionDatabaseLoaded = true;
+
+        String userDir = System.getProperty("user.dir");
+        String[] possibleNames = { "evolutions.txt", "Evolutions.txt", "Evolution.txt" };
+        File evoFile = null;
+
+        for (String fname : possibleNames) {
+            File f = new File(userDir, fname);
+            if (f.exists()) { evoFile = f; break; }
+        }
+        if (evoFile == null) {
+            for (String fname : possibleNames) {
+                File f = new File(userDir + File.separator + "src", fname);
+                if (f.exists()) { evoFile = f; break; }
+            }
+        }
+
+        if (evoFile == null) {
+            System.out.println("evolutions.txt not found — using built-in evolutions only.");
+            loadBuiltInEvolutions();
+            return;
+        }
+
+        System.out.println("Loading evolutions from: " + evoFile.getAbsolutePath());
+
+        try (Scanner sc = new Scanner(evoFile)) {
+            int count = 0;
+            while (sc.hasNextLine()) {
+                String line = sc.nextLine().trim();
+                if (line.isEmpty() || line.startsWith("#")) continue;
+
+                String[] parts = line.split(",");
+
+                // Support both 3-column (BaseName,EvolvesInto,Level) and
+                // 4-column (BaseName,EvolvesInto,Method,Requirement) formats
+                try {
+                    String baseName    = parts[0].trim();
+                    String evolvesInto = parts[1].trim();
+                    String method      = "Level"; // default
+                    int    levelReq    = 0;
+
+                    if (parts.length >= 4) {
+                        // 4-column format: BaseName,EvolvesInto,Method,Requirement
+                        method   = parts[2].trim();
+                        if (method.equalsIgnoreCase("Level")) {
+                            levelReq = Integer.parseInt(parts[3].trim());
+                        }
+                    } else if (parts.length == 3) {
+                        // 3-column format: BaseName,EvolvesInto,Level
+                        levelReq = Integer.parseInt(parts[2].trim());
+                    }
+
+                    evolutionDatabase.put(baseName.toLowerCase(),
+                                         new EvolutionEntry(evolvesInto, method, levelReq));
+                    count++;
+                } catch (NumberFormatException ex) {
+                    System.out.println("WARNING: Bad entry in evolutions.txt: " + line);
+                }
+            }
+            System.out.println("Evolution database loaded: " + count + " entries.");
+        } catch (Exception ex) {
+            System.out.println("Error reading evolutions.txt: " + ex.getMessage());
+            loadBuiltInEvolutions();
+        }
+    }
+
+    // Fallback used when evolutions.txt is missing
+    private void loadBuiltInEvolutions()
+    {
+        evolutionDatabase.put("charmander", new EvolutionEntry("Charmeleon", "Level", 16));
+        evolutionDatabase.put("charmeleon", new EvolutionEntry("Charizard",  "Level", 36));
+        evolutionDatabase.put("squirtle",   new EvolutionEntry("Wartortle",  "Level", 16));
+        evolutionDatabase.put("wartortle",  new EvolutionEntry("Blastoise",  "Level", 36));
+        evolutionDatabase.put("bulbasaur",  new EvolutionEntry("Ivysaur",    "Level", 16));
+        evolutionDatabase.put("ivysaur",    new EvolutionEntry("Venusaur",   "Level", 36));
+        System.out.println("Using built-in evolutions (starters only).");
+    }
+
+    // -----------------------------------------------------------------------
+    // Check if the active Pokemon should evolve after a battle
     // -----------------------------------------------------------------------
     private void checkEvolution()
     {
         Pokemon p = getActivePokemon();
         if (p == null) return;
 
-        String  oldName = p.name;
-        boolean evolved = false;
+        loadEvolutionDatabase();
 
-        if (p.level >= 36) {
-            if      (p.name.equals("Charmeleon")) { p.name = "Charizard";  evolved = true; }
-            else if (p.name.equals("Wartortle"))  { p.name = "Blastoise";  evolved = true; }
-            else if (p.name.equals("Ivysaur"))    { p.name = "Venusaur";   evolved = true; }
-        } else if (p.level >= 16) {
-            if      (p.name.equals("Charmander")) { p.name = "Charmeleon"; evolved = true; }
-            else if (p.name.equals("Squirtle"))   { p.name = "Wartortle";  evolved = true; }
-            else if (p.name.equals("Bulbasaur"))  { p.name = "Ivysaur";    evolved = true; }
-        }
+        EvolutionEntry entry = evolutionDatabase.get(p.name.toLowerCase());
+        if (entry == null) return;                          // Doesn't evolve
+        if (!entry.method.equalsIgnoreCase("Level")) return; // Not a level evolution
+        if (p.level < entry.levelRequired) return;          // Not high enough yet
 
-        if (evolved) {
-            logArea.append("\nWhat? " + oldName + " is evolving!\n");
+        evolvePokemon(p, entry.evolvesInto);
+    }
 
-            p.maxHp    += 20;
-            p.currentHp = p.maxHp;
+    // -----------------------------------------------------------------------
+    // Perform the evolution and check for a further evolution (stage 3 chains)
+    // e.g. Caterpie → Metapod → Butterfree in one battle
+    // -----------------------------------------------------------------------
+    private void evolvePokemon(Pokemon p, String nextForm)
+    {
+        String oldName = p.name;
+        p.name      = nextForm;
+        p.maxHp    += 20;
+        p.currentHp = p.maxHp;
 
-            loadMovesetsFromFile(p); // Load moves for the new form
+        loadMovesetsFromFile(p); // Load moves for the new form
+        updateStats();           // Refresh image to new form immediately
 
-            JOptionPane.showMessageDialog(this,
-                oldName + " has evolved into " + p.name + "!",
-                "Evolution", JOptionPane.INFORMATION_MESSAGE);
+        logArea.append("\nWhat? " + oldName + " is evolving!\n");
+        JOptionPane.showMessageDialog(this,
+            oldName + " evolved into " + p.name + "!",
+            "Evolution", JOptionPane.INFORMATION_MESSAGE);
+        logArea.append(oldName + " became " + p.name + "!\n");
 
-            logArea.append(oldName + " became " + p.name + "!\n");
-            updateStats();
-        }
+        // Recursively check if the new form also evolves at this level
+        // (handles stage-3 chains like Caterpie lv7 → Metapod lv10 → Butterfree)
+        checkEvolution();
     }
 
     // -----------------------------------------------------------------------
