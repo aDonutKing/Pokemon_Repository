@@ -35,11 +35,12 @@ public class GameLauncher extends JFrame
     private InventoryPanel inventoryPanel; // NEW: The Inventory Screen
    
     private String currentEnemyID = "";
-
-    PokemonData.loadFromFile("data/pokemon.txt"); // Load Pokemon data at startup
     
     public GameLauncher()
     {
+        // LOAD DATA FIRST
+        PokemonData.loadFromFile("data/pokemon.txt");
+
         setTitle("Java Pokémon: Full Battle System");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -629,87 +630,39 @@ class Pokemon implements Serializable
     int maxHp, currentHp, level, xp, xpToNext;
     int attack, defense, spAtk, spDef, speed;
     java.util.List<Move> moves = new java.util.ArrayList<>();
-   
-    class PokemonData 
-{
-    static List<Pokemon> allPokemon = new ArrayList<>();
 
-    public static void loadFromFile(String filePath) 
-    {
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) 
+    public Pokemon(String name, String type, int lvl) 
         {
-            String line;
+            this.name = name;
+            this.type = type;
+            this.level = lvl;
 
-            while ((line = br.readLine()) != null) 
-            {
-                String[] p = line.split(",");
+            this.xp = 0;
+            this.xpToNext = lvl * 15;
 
-                String name = p[1];
-
-                String type1 = p[3].toUpperCase();
-                String type2 = p[4].isEmpty() ? "" : "/" + p[4].toUpperCase();
-                String type = type1 + type2;
-
-                int hp = Integer.parseInt(p[5]);
-                int atk = Integer.parseInt(p[6]);
-                int def = Integer.parseInt(p[7]);
-                int spAtk = Integer.parseInt(p[8]);
-                int spDef = Integer.parseInt(p[9]);
-                int speed = Integer.parseInt(p[10]);
-
-                Pokemon mon = new Pokemon(name, type1, 5);
-
-                mon.maxHp = hp;
-                mon.currentHp = hp;
-
-                mon.attack = atk;
-                mon.defense = def;
-                mon.spAtk = spAtk;
-                mon.spDef = spDef;
-                mon.speed = speed;
-
-                allPokemon.add(mon);
-            }
-
-            System.out.println("Loaded " + allPokemon.size() + " Pokémon!");
-
-        } 
-        catch (Exception e) 
-            {
-            e.printStackTrace();
-            }
-    }
-}
-
-    public Pokemon(String name2, String type2, int lvl) 
-    {
-        //TODO Auto-generated constructor stub
-    }
-    public static Pokemon generateWild1(int minLvl, int maxLvl)
-    {
-        java.util.Random r = new java.util.Random();
-        int lvl = minLvl + r.nextInt(maxLvl - minLvl + 1);
-        public static Pokemon generateWild(int minLvl, int maxLvl)
-        {
-            Random r = new Random();
-            int lvl = minLvl + r.nextInt(maxLvl - minLvl + 1);
-
-            Pokemon base = PokemonData.allPokemon.get(r.nextInt(PokemonData.allPokemon.size()));
-
-            Pokemon wild = new Pokemon(base.name, base.type, lvl);
-
-            // Copy stats
-            wild.maxHp = base.maxHp;
-            wild.currentHp = base.maxHp;
-            wild.attack = base.attack;
-            wild.defense = base.defense;
-            wild.spAtk = base.spAtk;
-            wild.spDef = base.spDef;
-            wild.speed = base.speed;
-
-            return wild;
+            learnBaseMoves();
         }
-    
+    public static Pokemon generateWild(int minLvl, int maxLvl)
+    {
+        Random r = new Random();
+        int lvl = minLvl + r.nextInt(maxLvl - minLvl + 1);
+
+        Pokemon base = PokemonData.allPokemon.get(
+            r.nextInt(PokemonData.allPokemon.size())
+        );
+
+        Pokemon wild = new Pokemon(base.name, base.type, lvl);
+
+        // Copy stats
+        wild.maxHp = base.maxHp;
+        wild.currentHp = base.maxHp;
+        wild.attack = base.attack;
+        wild.defense = base.defense;
+        wild.spAtk = base.spAtk;
+        wild.spDef = base.spDef;
+        wild.speed = base.speed;
+
+        return wild;
     }
     private void learnBaseMoves()
     {
@@ -812,5 +765,59 @@ class Pokemon implements Serializable
         if(mType.equals("GROUND")) return (tType.equals("FIRE") || tType.equals("ELECTRIC") || tType.equals("ROCK")) ? 2.0 : (tType.equals("GRASS") || tType.equals("BUG")) ? 0.5 : 1.0;
         if(mType.equals("FLYING")) return (tType.equals("GRASS") || tType.equals("FIGHTING") || tType.equals("BUG")) ? 2.0 : (tType.equals("ELECTRIC") || tType.equals("ROCK")) ? 0.5 : 1.0;
         return 1.0; 
+    }
+}
+
+class PokemonData
+{
+    static List<Pokemon> allPokemon = new ArrayList<>();
+
+    public static void loadFromFile(String filePath) 
+    {
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(new FileInputStream(filePath), "UTF-8"))) 
+        {
+            String line;
+
+            while ((line = br.readLine()) != null) 
+            {
+                String[] p = line.split(",");
+
+                if (p.length < 11) continue; // safety check
+
+                String name = p[1];
+
+                String type1 = p[3].toUpperCase();
+                String type2 = p[4].isEmpty() ? "" : "/" + p[4].toUpperCase();
+                String type = type1 + type2;
+
+                int hp = Integer.parseInt(p[5]);
+                int atk = Integer.parseInt(p[6]);
+                int def = Integer.parseInt(p[7]);
+                int spAtk = Integer.parseInt(p[8]);
+                int spDef = Integer.parseInt(p[9]);
+                int speed = Integer.parseInt(p[10]);
+
+                Pokemon mon = new Pokemon(name, type1, 5);
+
+                mon.maxHp = hp;
+                mon.currentHp = hp;
+
+                mon.attack = atk;
+                mon.defense = def;
+                mon.spAtk = spAtk;
+                mon.spDef = spDef;
+                mon.speed = speed;
+
+                allPokemon.add(mon);
+            }
+
+            System.out.println("Loaded " + allPokemon.size() + " Pokémon!");
+
+        } 
+        catch (Exception e) 
+        {
+            e.printStackTrace();
+        }
     }
 }
