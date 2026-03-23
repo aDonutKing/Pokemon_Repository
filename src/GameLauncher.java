@@ -694,9 +694,7 @@ class Pokemon implements Serializable
             Random r = new Random();
             int lvl = minLvl + r.nextInt(maxLvl - minLvl + 1);
 
-            Pokemon base = PokemonData.allPokemon.get(
-                r.nextInt(PokemonData.allPokemon.size())
-            );
+            Pokemon base = PokemonData.allPokemon.get(r.nextInt(PokemonData.allPokemon.size()));
 
             Pokemon wild = new Pokemon(base.name, base.type, lvl);
 
@@ -753,27 +751,33 @@ class Pokemon implements Serializable
             moves.add(new Move("String Shot", "BUG", 10, 40));
             if(level >= 10) moves.add(new Move("Twin Needle", "BUG", 25, 20));
         }
-        else if(type.equals("GHOST")) {
+        else if(type.equals("GHOST")) 
+        {
             moves.add(new Move("Lick", "GHOST", 30, 30));
             if(level >= 12) moves.add(new Move("Shadow Ball", "GHOST", 80, 15));
         }
-        else if(type.equals("FIGHTING")) {
+        else if(type.equals("FIGHTING"))
+        {
             moves.add(new Move("Low Kick", "FIGHTING", 40, 20));
             if(level >= 12) moves.add(new Move("Karate Chop", "FIGHTING", 50, 25));
         }
-        else if(type.equals("POISON")) {
+        else if(type.equals("POISON")) 
+        {
             moves.add(new Move("Poison Sting", "POISON", 15, 35));
             if(level >= 12) moves.add(new Move("Sludge", "POISON", 65, 20));
         }
-        else if(type.equals("ICE")) {
+        else if(type.equals("ICE")) 
+        {
             moves.add(new Move("Ice Shard", "ICE", 40, 30));
             if(level >= 12) moves.add(new Move("Ice Beam", "ICE", 90, 10));
         }
-        else if(type.equals("DRAGON")) {
+        else if(type.equals("DRAGON")) 
+        {
             moves.add(new Move("Twister", "DRAGON", 40, 20));
             if(level >= 12) moves.add(new Move("Dragon Claw", "DRAGON", 80, 15));
         }
-        else { 
+        else 
+        { 
             if(level >= 10) moves.add(new Move("Quick Attack", "NORMAL", 40, 30));
         }
     }
