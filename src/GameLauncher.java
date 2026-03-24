@@ -647,6 +647,8 @@ class Pokemon implements Serializable
 
         if (PokemonData.allPokemon == null || PokemonData.allPokemon.isEmpty()) 
         {
+            System.out.println("DEBUG: allPokemon is " + 
+                (PokemonData.allPokemon == null ? "null" : "empty"));
             return null;
         }
 
@@ -786,9 +788,9 @@ class PokemonData
 
             while ((line = br.readLine()) != null) 
             {
-                String[] p = line.split(",");
+                String[] p = line.split(",", -1);
 
-                if (p.length < 11) continue; // safety check
+                if (p.length < 12) continue; // safety check
 
                 String name = p[1];
 
