@@ -644,6 +644,12 @@ class Pokemon implements Serializable
     public static Pokemon generateWild(int minLvl, int maxLvl)
     {
         Random r = new Random();
+
+        if (PokemonData.allPokemon == null || PokemonData.allPokemon.isEmpty()) 
+        {
+            return null;
+        }
+
         int lvl = minLvl + r.nextInt(maxLvl - minLvl + 1);
 
         Pokemon base = PokemonData.allPokemon.get(
