@@ -932,3 +932,6 @@ private static Map<Integer, Map<String, Integer>> encounters = new HashMap<>();
     class NPC      { String name, type, id; int x, y; Pokemon party; NPC(String n, int x, int y, String t, String i){name=n;this.x=x;this.y=y;type=t;id=i;} }
     class MapLabel { String text; int x, y; MapLabel(String t, int x, int y){text=t;this.x=x;this.y=y;} }
 }
+    class NPC      { String name, type, id; int x, y; Pokemon party; NPC(String n, int x, int y, String t, String i){name=n;this.x=x;this.y=y;type=t;id=i;} }
+    class MapLabel { String text; int x, y; MapLabel(String t, int x, int y){text=t;this.x=x;this.y=y;} }
+}
